@@ -1,5 +1,3 @@
-extensions [ table ]
-
 breed [ probes probe ]
 
 globals [
@@ -21,7 +19,7 @@ patches-own [
 to setup
   clear-all
   reset-ticks
-  import-pcolors "background2.png"
+  import-pcolors "background1.png"
   let coords [ [10 20 red] [14 -8 green] [-10 10 yellow] [-10 -10 cyan]]
   
   foreach coords [
@@ -41,14 +39,16 @@ to setup
     setxy -21 -22  
     facexy -20 -21
     set shape "airplane"
-    set genes table:make
     set age 0
-    table:put genes "range" random 20
-    table:put genes "width" random 360
-    table:put genes 15 45 - random 90 ; red
-    table:put genes 55 45 - random 90 ; green
-    table:put genes 45 45 - random 90 ; yellow
-    table:put genes 85 45 - random 90 ; cyan
+    ; [ range width 15 55 45 85 ]
+    set genes (list
+      (random 20)
+      (random 360)
+      (45 - random 90)
+      (45 - random 90)
+      (45 - random 90)
+      (45 - random 90)
+    )
   ]
   
   set generation 0
@@ -56,24 +56,25 @@ end
 
 
 to obtain-genes [parent1 parent2]
-  table:put genes "range" (table:get ([genes] of parent1) "range")
-  table:put genes "width" (table:get ([genes] of parent2) "width")
-  table:put genes 15 (table:get ([genes] of parent1) 15)
-  table:put genes 45 (table:get ([genes] of parent2) 45)
-  table:put genes 55 (table:get ([genes] of parent1) 55)
-  table:put genes 85 (table:get ([genes] of parent2) 85)
+  set genes (list
+    (item 0 [genes] of parent1)
+    (item 1 [genes] of parent2)
+    (item 2 [genes] of parent1)
+    (item 3 [genes] of parent2)
+    (item 4 [genes] of parent1)
+    (item 5 [genes] of parent2)
+  )
   
   if random 101 < 40 [
-    show "applying mutation"
-    let mut one-of ["range" "width" 15 45 55 85]
-    if mut = "range" [
-      table:put genes "range" random 20
+    let mut one-of [ 0 1 2 3 4 5]
+    if mut = 0 [
+      set genes replace-item mut genes random 20
     ]
-    if mut = "width" [
-      table:put genes "width" random 360
+    if mut = 1 [
+      set genes replace-item mut genes random 360
     ]
-    if mut = 15 or mut = 45 or mut = 55 or mut = 85 [
-      table:put genes mut 45 - random 90
+    if mut >= 2 [
+      set genes replace-item mut genes (45 - random 90)
     ]
   ]
 
@@ -119,13 +120,19 @@ end
 
 
 to check-light
-  let tmp patches in-cone (table:get genes "range") (table:get genes "width") with [is-light? = true]
+  let tmp patches in-cone (item 0 genes) (item 1 genes) with [is-light? = true]
   if count tmp > 0 [
     let light-color black
     ask one-of tmp [
       set light-color pcolor  
     ]
-    left (table:get genes light-color)
+    ; [ range width 15 55 45 85 ]
+    let i -1
+    if light-color = 15 [ set i 2 ]
+    if light-color = 55 [ set i 3 ]
+    if light-color = 45 [ set i 4 ]
+    if light-color = 85 [ set i 5 ]
+    left (item i genes)
   ]
 end
 
