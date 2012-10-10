@@ -103,7 +103,6 @@ to go
       setxy -21 -22  
       facexy -20 -21
       set shape "airplane"
-      set genes table:make
       set age 0
       obtain-genes (one-of probe-list) (one-of probe-list)
     ]
